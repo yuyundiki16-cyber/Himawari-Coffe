@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HIMAWARI COFFEE</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #f4f1ea; color: #333; display: flex; height: 100vh; overflow: hidden; }
+        
+        .container { display: flex; width: 100%; height: 100%; }
+        .menu-section { flex: 2; padding: 20px; overflow-y: auto; }
+        .cart-section { flex: 1.3; background: #ffffff; padding: 20px; border-left: 2px solid #e0dace; display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0,0,0,0.03); }
+
+        .header { text-align: center; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #eae5d9; }
+        .header h1 { color: #5a3e2b; font-size: 22px; letter-spacing: 1px; }
+        .header p { color: #8c7b6c; font-size: 12px; }
+        
+        .btn-history { background: #d4a373; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .btn-history:hover { background: #bc8a5f; }
+
+        /* Kategori & Daftar Menu */
+        .category-title { font-size: 18px; color: #5a3e2b; margin: 20px 0 10px 0; font-weight: bold; border-bottom: 2px solid #d4a373; display: inline-block; padding-bottom: 3px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 10px; }
+        
+        .menu-card { background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eae5d9; display: flex; flex-direction: column; justify-content: space-between; }
+        .menu-card h3 { font-size: 14px; margin-bottom: 8px; color: #4a3b32; }
+        
+        .variant-btns { display: flex; gap: 5px; margin-top: 5px; }
+        .btn-variant { flex: 1; background: #f4f1ea; border: 1px solid #d4a373; color: #5a3e2b; padding: 6px 4px; border-radius: 5px; font-size: 11px; font-weight: bold; cursor: pointer; text-align: center; }
+        .btn-variant:hover { background: #d4a373; color: white; }
+        .btn-variant.disabled { background: #eee; border-color: #ddd; color: #aaa; cursor: not-allowed; }
+
+        .btn-single { width: 100%; background: #5a3e2b; color: white; border: none; padding: 7px; border-radius: 5px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .btn-single:hover { background: #3d281a; }
+
+        /* Keranjang / Pesanan */
+        .cart-header { font-size: 16px; font-weight: bold; color: #5a3e2b; margin-bottom: 12px; border-bottom: 2px solid #f4f1ea; padding-bottom: 8px; display: flex; justify-content: space-between; }
+        .cart-items { flex: 1; overflow-y: auto; margin-bottom: 10px; padding-right: 5px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
+        .cart-item-info h4 { font-size: 13px; color: #333; }
+        .cart-item-info p { font-size: 12px; color: #777; }
+        .btn-qty { background: #e0dace; border: none; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        
+        .summary { background: #faf8f5; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 14px; }
+        .summary-row.total { font-size: 17px; font-weight: bold; color: #5a3e2b; border-top: 1px solid #ddd; padding-top: 6px; }
+        
+        /* Input & Metode Pembayaran */
+        .input-group { margin-bottom: 10px; }
+        .input-group label { font-size: 12px; color: #666; display: block; margin-bottom: 3px; font-weight: bold; }
+        .input-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; outline: none; background: #fff; }
+
+        .payment-method-container { margin-bottom: 10px; }
+        .payment-method-title { font-size: 12px; color: #666; margin-bottom: 4px; font-weight: bold; }
+        .payment-tabs { display: flex; gap: 8px; }
+        .tab-btn { flex: 1; padding: 8px; border: 1px solid #d4a373; background: #fff; color: #5a3e2b; font-weight: bold; border-radius: 6px; cursor: pointer; text-align: center; font-size: 13px; }
+        .tab-btn.active { background: #5a3e2b; color: #fff; border-color: #5a3e2b; }
+
+        .btn-pay { width: 100%; background: #5a3e2b; color: #fff; border: none; padding: 12px; font-size: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-pay:active { background: #3d281a; }
+
+        /* Modal Riwayat */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; }
+        .modal-content { background: white; padding: 20px; border-radius: 10px; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; font-weight: bold; }
+
+        /* Struk Cetak Thermal */
+        #receipt { display: none; }
+        @media print {
+            body * { visibility: hidden; }
+            #receipt, #receipt * { visibility: visible; }
+            #receipt { display: block; position: absolute; left: 0; top: 0; width: 72mm; font-family: 'Courier New', Courier, monospace; font-size: 11px; padding: 5px; color: #000; }
+            .receipt-header { text-align: center; margin-bottom: 8px; }
+            .receipt-line { border-bottom: 1px dashed #000; margin: 4px 0; }
+            .receipt-row { display: flex; justify-content: space-between; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Area Menu Kopi & Makanan -->
+    <div class="menu-section">
+        <div class="header">
+            <div>
+                <h1>🌻 HIMAWARI COFFEE</h1>
+                <p>Sistem Kasir </p>
+            </div>
+            <button class="btn-history" onclick="openHistoryModal()">📋 Laporan Penjualan</button>
+        </div>
+
+        <div id="menuContainer"></div>
+    </div>
+
+    <!-- Area Keranjang & Pembayaran -->
+    <div class="cart-section">
+        <div class="cart-header">
+            <span>Pesanan Aktif</span>
+            <span id="itemCount" style="font-size: 12px; color: #8c7b6c;">0 item</span>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <p style="color: #999; text-align: center; margin-top: 20px;">Pilih menu di sebelah kiri</p>
+        </div>
+
+        <div class="summary">
+            <div class="summary-row total">
+                <span>Total:</span>
+                <span id="totalPrice">Rp 0</span>
+            </div>
+        </div>
+
+        <!-- Pilihan Nama Kasir -->
+        <div class="input-group">
+            <label for="cashierName">Nama Kasir:</label>
+            <select id="cashierName">
+                <option value="Herman">Herman</option>
+                <option value="Akbar">Akbar</option>
+                <option value="Rizky">Rizky</option>
+            </select>
+        </div>
+
+        <!-- Opsi Pembayaran -->
+        <div class="payment-method-container">
+            <div class="payment-method-title">Metode Pembayaran:</div>
+            <div class="payment-tabs">
+                <button class="tab-btn active" id="tabCash" onclick="setPaymentMethod('CASH')">💵 TUNAI</button>
+                <button class="tab-btn" id="tabQris" onclick="setPaymentMethod('QRIS')">📱 QRIS</button>
+            </div>
+        </div>
+
+        <button class="btn-pay" onclick="processPayment()">Selesaikan Transaksi & Cetak Struk</button>
+    </div>
+</div>
+
+<!-- Modal Riwayat -->
+<div class="modal" id="historyModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Riwayat Penjualan Hari Ini</h3>
+            <button class="close-modal" onclick="closeHistoryModal()">&times;</button>
+        </div>
+        <div id="historyList">
+            <p style="color: #777; text-align: center;">Belum ada transaksi hari ini.</p>
+        </div>
+        <div style="margin-top: 15px; border-top: 1px solid #ddd; padding-top: 10px; display: flex; justify-content: space-between; font-weight: bold;">
+            <span>Total Omzet:</span>
+            <span id="todayOmzet">Rp 0</span>
+        </div>
+        <button onclick="clearHistory()" style="width:100%; margin-top:15px; background:#d9534f; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">Reset Laporan</button>
+    </div>
+</div>
+
+<!-- Area Struk Print -->
+<div id="receipt">
+    <div class="receipt-header">
+        <h3 style="margin-bottom:2px;">HIMAWARI COFFEE</h3>
+        <p>Pekan Sialang Buah<p>
+        </p> Kec. Teluk Mengkudu Serdang Bedagai</p>
+        <p id="receiptDate">-</p>
+        <p>Kasir: <span id="receiptCashier">-</span></p>
+        <p>----------------------------------</p>
+    </div>
+    <div id="receiptItems"></div>
+    <div class="receipt-line"></div>
+    <div class="receipt-row"><span>Metode Bayar:</span><span id="receiptMethod">CASH</span></div>
+    <div class="receipt-row"><span>Total Belanja:</span><span id="receiptTotal">Rp 0</span></div>
+    <div class="receipt-line"></div>
+    <p style="text-align: center; margin-top: 8px;">
+        Terima Kasih Atas Kunjungan Anda!<br>
+        Follow Instagram: @himawari.coffee_<br>
+        Have a nice day! 🌻
+    </p>
+</div>
+
+<script>
+    const categories = [
+        {
+            categoryName: "☕ COFFEE (Hot / Cool)",
+            items: [
+                { name: "Espresso", hot: 15000, cool: null },
+                { name: "Americano", hot: 15000, cool: 17000 },
+                { name: "Americano Peach", hot: null, cool: 20000 },
+                { name: "Lemonade", hot: null, cool: 22000 },
+                { name: "Americano Aren", hot: null, cool: 20000 },
+                { name: "Vanilla Latte", hot: 15000, cool: 18000 },
+                { name: "Cafe Latte", hot: 15000, cool: 17000 },
+                { name: "Cappuccino", hot: 15000, cool: 17000 },
+                { name: "Caramel Macchiato", hot: null, cool: 20000 },
+                { name: "Spanish Latte", hot: 17000, cool: null },
+                { name: "Sanger", hot: 16000, cool: 18000 },
+                { name: "Kosuren (Kopi Susu Aren)", hot: null, cool: 20000 },
+                { name: "Kopi Kacang", hot: null, cool: 20000 },
+                { name: "Kopi Pandan", hot: null, cool: 20000 }
+            ]
+        },
+        {
+            categoryName: "⭐ SIGNATURE",
+            items: [
+                { name: "Butterscotch Creamy Crunchy", price: 22000 },
+                { name: "Himawari Coffe", price: 23000 },
+                { name: "Cold White", price: 22000 },
+                { name: "Cold Brew Peach", price: 22000 },
+                { name: "Ice Cube", price: 20000 }
+            ]
+        },
+        {
+            categoryName: "🍟 SNACK",
+            items: [
+                { name: "Mix Platter", price: 20000 },
+                { name: "Dimsum Ayam", price: 20000 },
+                { name: "Dimsum Udang", price: 23000 },
+                { name: "Dimsum Kepiting", price: 23000 },
+                { name: "Dimsum Rumput Laut", price: 23000 },
+                { name: "Lumpia Kulit Tahu", price: 23000 },
+                { name: "Indomie Goreng", price: 15000 },
+                { name: "Kentang Goreng", price: 16000 }
+            ]
+        },
+        {
+            categoryName: "🥛 NON COFFEE",
+            items: [
+                { name: "Chocolatte", price: 20000 },
+                { name: "Matcha Latte", price: 20000 },
+                { name: "Red Velvet", price: 20000 },
+                { name: "Taro", price: 20000 }
+            ]
+        },
+        {
+            categoryName: "🍵 TEA (Hot / Cool)",
+            items: [
+                { name: "Lemon Tea", hot: 13000, cool: 15000 },
+                { name: "Lychee Tea", hot: null, cool: 15000 }
+            ]
+        }
+    ];
+
+    let cart = [];
+    let selectedMethod = 'CASH';
+    let salesHistory = JSON.parse(localStorage.getItem('himawari_history')) || [];
+
+    function renderMenu() {
+        const container = document.getElementById('menuContainer');
+        container.innerHTML = '';
+
+        categories.forEach(cat => {
+            let html = `<div class="category-title">${cat.categoryName}</div><div class="menu-grid">`;
+            
+            cat.items.forEach(item => {
+                if (item.price !== undefined) {
+                    html += `
+                        <div class="menu-card">
+                            <h3>${item.name}</h3>
+                            <div style="font-size: 13px; color: #d4a373; font-weight: bold; margin-bottom: 8px;">Rp ${item.price.toLocaleString('id-ID')}</div>
+                            <button class="btn-single" onclick="addToCart('${item.name}', 'Regular', ${item.price})">+ Tambah</button>
+                        </div>
+                    `;
+                } else {
+                    let hotBtn = item.hot !== null 
+                        ? `<button class="btn-variant" onclick="addToCart('${item.name}', 'Hot', ${item.hot})">Hot<br>Rp ${item.hot.toLocaleString('id-ID')}</button>` 
+                        : `<button class="btn-variant disabled">Hot<br>-</button>`;
+                    
+                    let coolBtn = item.cool !== null 
+                        ? `<button class="btn-variant" onclick="addToCart('${item.name}', 'Cool', ${item.cool})">Cool<br>Rp ${item.cool.toLocaleString('id-ID')}</button>` 
+                        : `<button class="btn-variant disabled">Cool<br>-</button>`;
+
+                    html += `
+                        <div class="menu-card">
+                            <h3>${item.name}</h3>
+                            <div class="variant-btns">
+                                ${hotBtn}
+                                ${coolBtn}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            html += `</div>`;
+            container.innerHTML += html;
+        });
+    }
+
+    function addToCart(name, variant, price) {
+        let fullName = variant === 'Regular' ? name : `${name} (${variant})`;
+        const cartItem = cart.find(c => c.fullName === fullName);
+
+        if (cartItem) {
+            cartItem.qty += 1;
+        } else {
+            cart.push({ fullName, price, qty: 1 });
+        }
+        updateCart();
+    }
+
+    function changeQty(fullName, delta) {
+        const cartItem = cart.find(c => c.fullName === fullName);
+        if (cartItem) {
+            cartItem.qty += delta;
+            if (cartItem.qty <= 0) {
+                cart = cart.filter(c => c.fullName !== fullName);
+            }
+        }
+        updateCart();
+    }
+
+    function updateCart() {
+        const cartItems = document.getElementById('cartItems');
+        const itemCount = document.getElementById('itemCount');
+        
+        let totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+        itemCount.innerText = `${totalItems} item`;
+
+        if (cart.length === 0) {
+            cartItems.innerHTML = '<p style="color: #999; text-align: center; margin-top: 20px;">Pilih menu di sebelah kiri</p>';
+            document.getElementById('totalPrice').innerText = 'Rp 0';
+            return;
+        }
+
+        cartItems.innerHTML = '';
+        let total = 0;
+
+        cart.forEach(item => {
+            const itemTotal = item.price * item.qty;
+            total += itemTotal;
+            cartItems.innerHTML += `
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        <h4>${item.fullName}</h4>
+                        <p>Rp ${item.price.toLocaleString('id-ID')} x ${item.qty}</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button class="btn-qty" onclick="changeQty('${item.fullName}', -1)">-</button>
+                        <span style="font-size: 14px; font-weight: bold; min-width: 15px; text-align: center;">${item.qty}</span>
+                        <button class="btn-qty" onclick="changeQty('${item.fullName}', 1)">+</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        document.getElementById('totalPrice').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+    }
+
+    function setPaymentMethod(method) {
+        selectedMethod = method;
+        const tabCash = document.getElementById('tabCash');
+        const tabQris = document.getElementById('tabQris');
+
+        if (method === 'CASH') {
+            tabCash.classList.add('active');
+            tabQris.classList.remove('active');
+        } else {
+            tabQris.classList.add('active');
+            tabCash.classList.remove('active');
+        }
+    }
+
+    function processPayment() {
+        const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+        const cashierName = document.getElementById('cashierName').value;
+
+        if (cart.length === 0) {
+            alert("Keranjang masih kosong!");
+            return;
+        }
+
+        const now = new Date();
+        const dateString = now.toLocaleDateString('id-ID') + ' ' + now.toLocaleTimeString('id-ID');
+
+        const transaction = {
+            date: dateString,
+            cashier: cashierName,
+            method: selectedMethod,
+            items: [...cart],
+            total: total
+        };
+        salesHistory.push(transaction);
+        localStorage.setItem('himawari_history', JSON.stringify(salesHistory));
+
+        document.getElementById('receiptDate').innerText = dateString;
+        document.getElementById('receiptCashier').innerText = cashierName;
+        document.getElementById('receiptMethod').innerText = selectedMethod;
+        
+        const receiptItems = document.getElementById('receiptItems');
+        receiptItems.innerHTML = '';
+        cart.forEach(item => {
+            receiptItems.innerHTML += `
+                <div class="receipt-row">
+                    <span>${item.fullName} (${item.qty}x)</span>
+                    <span>Rp ${(item.price * item.qty).toLocaleString('id-ID')}</span>
+                </div>
+            `;
+        });
+
+        document.getElementById('receiptTotal').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+
+        window.print();
+
+        cart = [];
+        updateCart();
+    }
+
+    function openHistoryModal() {
+        const modal = document.getElementById('historyModal');
+        const historyList = document.getElementById('historyList');
+        const todayOmzet = document.getElementById('todayOmzet');
+        
+        modal.style.display = 'flex';
+        historyList.innerHTML = '';
+
+        if (salesHistory.length === 0) {
+            historyList.innerHTML = '<p style="color: #777; text-align: center;">Belum ada riwayat transaksi.</p>';
+            todayOmzet.innerText = 'Rp 0';
+            return;
+        }
+
+        let omzet = 0;
+        salesHistory.slice().reverse().forEach((trx) => {
+            omzet += trx.total;
+            let itemListStr = trx.items.map(i => `${i.fullName} (${i.qty}x)`).join(', ');
+            historyList.innerHTML += `
+                <div style="border-bottom: 1px solid #eee; padding: 8px 0; font-size: 13px;">
+                    <div style="font-weight: bold; color: #5a3e2b; display: flex; justify-content: space-between;">
+                        <span>${trx.date}</span>
+                        <span style="background: #e0dace; padding: 1px 6px; border-radius: 4px; font-size: 11px;">${trx.method}</span>
+                    </div>
+                    <div style="color: #555; margin-top: 3px;">${itemListStr}</div>
+                    <div style="color: #777; font-size: 11px;">Kasir: ${trx.cashier || '-'}</div>
+                    <div style="color: #d4a373; font-weight: bold; text-align: right; margin-top: 2px;">Total: Rp ${trx.total.toLocaleString('id-ID')}</div>
+                </div>
+            `;
+        });
+
+        todayOmzet.innerText = `Rp ${omzet.toLocaleString('id-ID')}`;
+    }
+
+    function closeHistoryModal() {
+        document.getElementById('historyModal').style.display = 'none';
+    }
+
+    function clearHistory() {
+        if (confirm("Yakin ingin menghapus seluruh riwayat penjualan?")) {
+            salesHistory = [];
+            localStorage.removeItem('himawari_history');
+            openHistoryModal();
+        }
+    }
+
+    renderMenu();
+</script>
+</body>
+</html>
